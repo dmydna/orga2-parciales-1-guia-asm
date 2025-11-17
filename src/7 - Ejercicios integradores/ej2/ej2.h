@@ -14,7 +14,7 @@ typedef struct {
 	char clase[11];       //asmdef_offset:ATTACKUNIT_CLASE
 	uint16_t combustible; //asmdef_offset:ATTACKUNIT_COMBUSTIBLE
 	uint8_t references;   //asmdef_offset:ATTACKUNIT_REFERENCES
-} attackunit_t; //asmdef_size:ATTACKUNIT_SIZE
+} attackunit_t;           //asmdef_size:ATTACKUNIT_SIZE
 
 typedef attackunit_t *mapa_t[255][255];
 

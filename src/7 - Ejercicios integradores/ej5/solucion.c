@@ -38,6 +38,12 @@ bool EJERCICIO_3_HECHO = true;
  *   - Cualquier otro valor es `true`
  */
 bool hay_accion_que_toque(accion_t* accion, char* nombre) {
+	while (accion){
+		carta_t* carta = accion->destino;
+		if(!carta) continue;
+		if(strcmp(carta->nombre, nombre) == 0) return true;
+		accion = accion->siguiente;
+	}
 	return false;
 }
 
@@ -63,6 +69,19 @@ bool hay_accion_que_toque(accion_t* accion, char* nombre) {
  * orden de ejecución.
  */
 void invocar_acciones(accion_t* accion, tablero_t* tablero) {
+
+	while (accion){
+
+		carta_t* carta = accion->destino;
+
+		if(carta->en_juego){
+			accion->invocar(tablero, carta);
+			if(carta->vida == 0){
+				carta->en_juego = 0;
+			}
+		}
+		accion = accion->siguiente;
+	}
 }
 
 /**
@@ -84,4 +103,19 @@ void invocar_acciones(accion_t* accion, tablero_t* tablero) {
  */
 void contar_cartas(tablero_t* tablero, uint32_t* cant_rojas, uint32_t* cant_azules) {
 	*cant_rojas = *cant_azules = 0;
+
+	for (int i = 0; i < ALTO_CAMPO; i++){
+		for(int j = 0; j < ANCHO_CAMPO; j++){
+			carta_t* carta = tablero->campo[i][j];
+			if(!carta){
+				continue;
+			}
+			if(carta->jugador == JUGADOR_AZUL){
+				*cant_azules +=1;
+			}
+			if(carta->jugador == JUGADOR_ROJO){
+				*cant_rojas +=1;
+			}
+		}
+	}
 }

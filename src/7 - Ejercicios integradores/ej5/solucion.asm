@@ -20,21 +20,21 @@ extern strcmp
 
 ;########### ESTOS SON LOS OFFSETS Y TAMAÑO DE LOS STRUCTS
 ; Completar las definiciones (serán revisadas por ABI enforcer):
-carta.en_juego EQU NO_COMPLETADO
-carta.nombre   EQU NO_COMPLETADO
-carta.vida     EQU NO_COMPLETADO
-carta.jugador  EQU NO_COMPLETADO
-carta.SIZE     EQU NO_COMPLETADO
+carta.en_juego EQU 0
+carta.nombre   EQU 1
+carta.vida     EQU 14
+carta.jugador  EQU 16
+carta.SIZE     EQU 18
 
-tablero.mano_jugador_rojo EQU NO_COMPLETADO
-tablero.mano_jugador_azul EQU NO_COMPLETADO
-tablero.campo             EQU NO_COMPLETADO
-tablero.SIZE              EQU NO_COMPLETADO
+tablero.mano_jugador_rojo EQU 0
+tablero.mano_jugador_azul EQU 8
+tablero.campo             EQU 16
+tablero.SIZE              EQU 72
 
-accion.invocar   EQU NO_COMPLETADO
-accion.destino   EQU NO_COMPLETADO
-accion.siguiente EQU NO_COMPLETADO
-accion.SIZE      EQU NO_COMPLETADO
+accion.invocar   EQU 0
+accion.destino   EQU 8
+accion.siguiente EQU 16
+accion.SIZE      EQU 24
 
 ; Variables globales de sólo lectura
 section .rodata
@@ -58,7 +58,7 @@ EJERCICIO_2_HECHO: db FALSE
 ; Funciones a implementar:
 ;   - contar_cartas
 global EJERCICIO_3_HECHO
-EJERCICIO_3_HECHO: db FALSE
+EJERCICIO_3_HECHO: db TRUE
 
 section .text
 
@@ -80,9 +80,56 @@ hay_accion_que_toque:
 	; ubicación según la convención de llamada. Prestá atención a qué
 	; valores son de 64 bits y qué valores son de 32 bits o 8 bits.
 	;
-	; r/m64 = accion_t*  accion
-	; r/m64 = char*      nombre
+	; rdi/m64 = accion_t*  accion
+	; rsi/m64 = char*      nombre
+
+	push rbp
+	mov rbp, rsp
+
+	push r15
+	push r14
+	push r13
+	push rbx
+
+	mov r15, rdi
+	mov r13, rsi
+
+
+	.while:
+	cmp r15, 0
+	je .ret_false
+
+
+	mov r14, [r15 + accion.destino]	; carta
+	cmp r14, 0
+	je .continue
+
+
+	mov rdi, r13
+	lea rsi, [r14 + carta.nombre]
+	call strcmp
+
+	cmp rax, 0
+	je .ret_true
+
+	.continue:
+	mov r15, [r15 + accion.siguiente]
+	jmp .while
+
+	.ret_true:
+	mov rax, 1
+	jmp .exit
+
+	.ret_false:
 	xor rax, rax
+
+	.exit:
+	pop rbx
+	pop r13
+	pop r14
+	pop r15
+
+	pop rbp
 	ret
 
 ; Invoca las acciones que fueron encoladas en la secuencia proporcionada en el
@@ -114,8 +161,47 @@ invocar_acciones:
 	; ubicación según la convención de llamada. Prestá atención a qué
 	; valores son de 64 bits y qué valores son de 32 bits o 8 bits.
 	;
-	; r/m64 = accion_t*  accion
-	; r/m64 = tablero_t* tablero
+	; rdi/m64 = accion_t*  accion
+	; rsi/m64 = tablero_t* tablero
+	push rbp
+	mov rbp, rsp
+	
+	push r13
+	push r14
+	push r15
+	push rbx
+
+	mov r13, rdi; R13 = accion
+	mov r14, rsi; R14 = tablero
+
+	.while:
+	cmp r13, 0
+	je .end
+
+	mov r15, [r13 + accion.destino]; R15 = carta
+	
+	cmp byte [r15 + carta.en_juego], 0 ; carta->en_juego
+	je .continue
+
+	mov rdi, r14
+	mov rsi, r15
+	call [r13 + accion.invocar]
+
+	cmp word [r15 + carta.vida], 0
+	jne .continue
+
+	mov byte [r15 + carta.en_juego], 0
+	.continue:
+	mov r13, [r13 + accion.siguiente]
+	jmp .while
+
+	.end:
+	pop rbx
+	pop r15
+	pop r14
+	pop r13
+
+	pop rbp
 	ret
 
 ; Cuenta la cantidad de cartas rojas y azules en el tablero.
@@ -143,7 +229,53 @@ contar_cartas:
 	; ubicación según la convención de llamada. Prestá atención a qué
 	; valores son de 64 bits y qué valores son de 32 bits o 8 bits.
 	;
-	; r/m64 = tablero_t* tablero
-	; r/m64 = uint32_t*  cant_rojas
-	; r/m64 = uint32_t*  cant_azules
+	; rdi/m64 = tablero_t* tablero
+	; rsi/m64 = uint32_t*  cant_rojas
+	; rdx/m64 = uint32_t*  cant_azules
+	push rbp
+	mov rbp, rsp
+	
+	push r12
+	push rbx
+
+	mov dword [rsi],0
+	mov dword [rdx],0
+
+	xor rbx, rbx ; i = 0
+
+	.for:
+	cmp rbx, tablero.ANCHO * tablero.ALTO
+	je .end
+
+	lea r10, [rdi + tablero.campo]
+	mov r10, [r10 + rbx * 8]; campo[i][j] = carta | null 
+
+	cmp r10, 0
+	je .continue
+
+	cmp byte [r10 + carta.jugador], JUGADOR_AZUL
+	je .cant_azules
+
+	cmp byte [r10 + carta.jugador], JUGADOR_ROJO
+	je .cant_rojas
+	
+	jmp .continue
+
+	.cant_rojas:
+	add dword [rsi], 1
+	jmp .continue
+
+	.cant_azules:
+	add dword [rdx], 1
+
+	.continue:
+	inc rbx
+	jmp .for
+
+	.end:
+
+	pop rbx
+	pop r12
+	
+	pop rbp
 	ret
