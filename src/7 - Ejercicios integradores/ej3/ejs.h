@@ -54,3 +54,11 @@ segmentacion_t* segmentar_casos(caso_t* arreglo_casos, int largo);
 void resolver_automaticamente(funcionCierraCasos_t* funcion, caso_t* arreglo_casos, caso_t* casos_a_revisar, int largo);
 
 estadisticas_t* calcular_estadisticas(caso_t* arreglo_casos, int largo, uint32_t usuario_id);
+
+
+segmentacion_t* init_segmento(int* contadores);
+uint8_t* init_contadores(uint8_t largo);
+
+bool esCategoriaParaCerrarCaso(caso_t* caso);
+bool esCasoARevisar(caso_t*caso);
+void actualizarEstadoPorCaso(caso_t* caso, funcionCierraCasos_t* funcion);

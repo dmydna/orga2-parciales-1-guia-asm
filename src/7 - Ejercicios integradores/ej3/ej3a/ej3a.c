@@ -1,11 +1,56 @@
 #include "../ejs.h"
 
 // Función auxiliar para contar casos por nivel
+
+
 void contar_casos_por_nivel(caso_t* arreglo_casos, int largo, int* contadores) {
+    if(largo == 0){
+        return;
+    }
     for (int i = 0; i < largo; i++){
-        caso_t caso = arreglo_casos[i];
-        contadores[caso.usuario->nivel]++;
-        }
+       contadores[arreglo_casos[i].usuario->nivel] ++;
+    }
+}
+
+
+
+segmentacion_t* init_segmento(int* contadores){
+    segmentacion_t* segmento = (segmentacion_t*)malloc(sizeof(segmentacion_t));
+
+    segmento->casos_nivel_0 = NULL;
+    segmento->casos_nivel_1 = NULL;
+    segmento->casos_nivel_2 = NULL;
+
+    if(contadores[0] != 0)
+        segmento->casos_nivel_0 = (caso_t*) malloc(sizeof(caso_t)*contadores[0]);
+    if(contadores[1] != 0)
+        segmento->casos_nivel_1 = (caso_t*) malloc(sizeof(caso_t)*contadores[1]);
+    if(contadores[2] != 0)
+        segmento->casos_nivel_2 = (caso_t*) malloc(sizeof(caso_t)*contadores[2]);
+    
+    return segmento;
+}
+
+uint8_t* init_contadores(uint8_t largo){
+    int* contadores = (int*) malloc(sizeof(int)*largo);
+    for (int i = 0; i < largo; i++){
+        contadores[i] = 0;
+    }
+    return contadores;
+}
+
+
+void asignar_segmento(caso_t* caso, segmentacion_t* segmento, int* indices){
+    
+    if(caso->usuario->nivel == 0){
+       segmento->casos_nivel_0[indices[0]++] = *caso;
+    }
+    if(caso->usuario->nivel == 1){
+       segmento->casos_nivel_1[indices[1]++] = *caso;
+    }
+    if(caso->usuario->nivel == 2){
+      segmento->casos_nivel_2[indices[2]++] = *caso;
+    }
 }
 
 
@@ -13,44 +58,24 @@ void contar_casos_por_nivel(caso_t* arreglo_casos, int largo, int* contadores) {
 
 
 segmentacion_t* segmentar_casos(caso_t* arreglo_casos, int largo) {
+    
 
+    uint8_t* contadores = init_contadores(3);
 
-    int contadores[3] = {0,0,0};
     contar_casos_por_nivel(arreglo_casos, largo, contadores);
 
+    segmentacion_t* segmento = init_segmento(contadores);
+    
+    free(contadores);
 
-    caso_t* casos_nivel_0 = NULL;
-    caso_t* casos_nivel_1 = NULL;
-    caso_t* casos_nivel_2 = NULL;
+    uint8_t* indices = init_contadores(3);
 
-    if(contadores[0]) casos_nivel_0 = (caso_t*)malloc(sizeof(caso_t) * contadores[0]);
-    if(contadores[1]) casos_nivel_0 = (caso_t*)malloc(sizeof(caso_t) * contadores[0]);
-    if(contadores[2]) casos_nivel_0 = (caso_t*)malloc(sizeof(caso_t) * contadores[0]);
-
-
-    int a = 0;
-    int b = 0;
-    int c = 0;
-
-    for (int i = 0; i < largo; i++){
-
-        caso_t caso = arreglo_casos[i];
-        switch (caso.usuario->nivel){
-           case 0: if(casos_nivel_0) casos_nivel_0[a++] = caso; break; 
-           case 1: if(casos_nivel_1) casos_nivel_1[b++] = caso; break;
-           case 2: if(casos_nivel_2) casos_nivel_2[c++] = caso; break;
-        }
+    for(int i=0; i<largo; i++){
+        asignar_segmento(&arreglo_casos[i], segmento, indices);
     }
 
-    segmentacion_t* casos_por_segmento = (segmentacion_t*)malloc(sizeof(segmentacion_t));
-
-    *casos_por_segmento = (segmentacion_t){
-        .casos_nivel_0 = casos_nivel_0, 
-        .casos_nivel_1 = casos_nivel_1, 
-        .casos_nivel_2 = casos_nivel_2
-    };
-
-    return casos_por_segmento;
+    free(indices);
+    return segmento;
 }
 
 

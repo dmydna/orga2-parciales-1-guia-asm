@@ -2,41 +2,43 @@
 
 estadisticas_t* calcular_estadisticas(caso_t* arreglo_casos, int largo, uint32_t usuario_id){
 
-    estadisticas_t* estadisticas = malloc(sizeof(estadisticas_t*));
+      estadisticas_t* estadisticas = calloc(1, sizeof(estadisticas_t));
 
-    for (size_t i = 0; i < largo; i++){
-        caso_t  caso = arreglo_casos[i];
-        int id_actual = caso.usuario->id;
-        char* categoria = caso.categoria;
-        int estado = caso.estado;
+      for(int i=0; i<largo;i++){
+        if(usuario_id != 0 && arreglo_casos[i].usuario->id == usuario_id){
+            cantidad_por_casos(estadisticas, &arreglo_casos[i]);
+        }
+        if(usuario_id == 0){
+            cantidad_por_casos(estadisticas, &arreglo_casos[i]);
+        }
+      }
 
-        if(usuario_id != 0 && usuario_id != id_actual ){
-          continue;
-        }
-
-       // usuario_id == 0
-       // usuario_id != 0 && usuario_id == id_actual
-
-        if(strcmp(categoria, "CLT") == 0){
-         estadisticas->cantidad_CLT ++;
-        }
-        if(strcmp(categoria, "RBO") == 0){
-         estadisticas->cantidad_RBO ++;
-        }
-        if(strcmp(categoria, "KSC") == 0){
-         estadisticas->cantidad_KSC ++;
-        }
-        if(strcmp(categoria, "KDT") == 0){
-         estadisticas->cantidad_KDT ++;
-        }
-        switch (estado){
-           case 1:  estadisticas->cantidad_estado_1 ++; break;
-           case 2:  estadisticas->cantidad_estado_2 ++; break;
-           default: estadisticas->cantidad_estado_0 ++; break;
-        }
-    }
-    
     return estadisticas;
 }
 
+void cantidad_por_casos(estadisticas_t* estadisticas, caso_t* caso){
+    
+    if(strcmp(caso->categoria, "CLT") == 0){
+        estadisticas->cantidad_CLT ++;
+    };
+    if(strcmp(caso->categoria, "RBO") == 0){
+        estadisticas->cantidad_RBO ++;
+    };
+    if(strcmp(caso->categoria, "KSC") == 0){
+        estadisticas->cantidad_KSC ++;
+    };
+    if(strcmp(caso->categoria, "KDT") == 0){
+        estadisticas->cantidad_KDT ++;
+    }
+
+    if(caso->estado == 0){
+        estadisticas->cantidad_estado_0++;
+    }
+    if(caso->estado == 1){
+        estadisticas->cantidad_estado_1++;
+    }
+    if(caso->estado == 2){
+        estadisticas->cantidad_estado_2++;
+    }
+}
 
