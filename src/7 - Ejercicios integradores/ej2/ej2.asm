@@ -15,14 +15,14 @@ TRUE  EQU 1
 ; Funciones a implementar:
 ;   - optimizar
 global EJERCICIO_2A_HECHO
-EJERCICIO_2A_HECHO: db FALSE ; Cambiar por `TRUE` para correr los tests.
+EJERCICIO_2A_HECHO: db TRUE ; Cambiar por `TRUE` para correr los tests.
 
 ; Marca el ejercicio 1B como hecho (`true`) o pendiente (`false`).
 ;
 ; Funciones a implementar:
 ;   - contarCombustibleAsignado
 global EJERCICIO_2B_HECHO
-EJERCICIO_2B_HECHO: db FALSE ; Cambiar por `TRUE` para correr los tests.
+EJERCICIO_2B_HECHO: db TRUE ; Cambiar por `TRUE` para correr los tests.
 
 ; Marca el ejercicio 1C como hecho (`true`) o pendiente (`false`).
 ;

@@ -45,6 +45,10 @@ void optimizar(mapa_t mapa, attackunit_t* compartida, uint32_t (*fun_hash)(attac
            unidad_actual->references --;
            mapa[i][j] = compartida;
         }
+        if (unidad_actual->references == 0){
+            free(unidad_actual);
+        }
+        
     }
   }
 }
@@ -78,26 +82,25 @@ uint32_t contarCombustibleAsignado(mapa_t mapa, uint16_t (*fun_combustible)(char
  */
 void modificarUnidad(mapa_t mapa, uint8_t x, uint8_t y, void (*fun_modificar)(attackunit_t*)) {
 
+    attackunit_t* unidad_actual = mapa[x][y];
 
-   attackunit_t* unidad = mapa[x][y];
+    if(unidad_actual == NULL){
+        return;
+    }
 
-   if(!unidad){
-      return;
-   } 
+    bool estaOptimizada = unidad_actual ->references > 1;
 
-   // es unidad compartida
-   if(unidad->references > 0){
-      attackunit_t* nueva_unidad = (attackunit_t*) malloc(sizeof(attackunit_t));
-      strcpy( nueva_unidad->clase , unidad->clase);
-      nueva_unidad->references = 1;
-      nueva_unidad->combustible = unidad->combustible;
-      unidad->references--;
-      fun_modificar(nueva_unidad);
-      mapa[x][y] = nueva_unidad;
-   }else{
-      fun_modificar(unidad);
-   }
+    if(estaOptimizada){
+        attackunit_t* nuevaUnidad = (attackunit_t*) malloc(sizeof(attackunit_t));
+        unidad_actual->references --;
+        // copia todos los campos a la nueva estructura
+        // (solo para campos que no sean punteros, la copia es directa)
+        *nuevaUnidad = *unidad_actual;
+        nuevaUnidad->references = 1;
+        mapa[x][y] = nuevaUnidad;
+        unidad_actual = nuevaUnidad;
+    }
 
-  return;
+    fun_modificar(unidad_actual);
 
 }
